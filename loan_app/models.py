@@ -79,6 +79,13 @@ class Value(models.Model):
             typified_value_object.__dict__.update(self.__dict__)
         typified_value_object.save()
 
+    @classmethod
+    def get_key(cls):
+        return u'{app_name}.{class_name}'.format(
+            app_name=cls._meta.app_label,
+            class_name=cls._meta.object_name,
+        )
+
 
 class CharValue(Value):
     typified_value = models.CharField(max_length=512)
@@ -124,10 +131,7 @@ class Field(models.Model):
         max_length=64,
         choices=(
             (
-                u'{app_name}.{class_name}'.format(
-                    app_name=value_type_model._meta.app_label,
-                    class_name=value_type_model._meta.object_name,
-                ),
+                value_type_model.get_key(),
                 value_type_model.__name__
             )
             for value_type_model
