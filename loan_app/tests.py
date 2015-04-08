@@ -14,6 +14,7 @@ class ValueTestCase(TestCase):
         car_loan_application_type = ApplicationType.objects.create(
             name=u'Автокредит',
             short_name=u'АК',
+            key=u'car',
         )
         car_loan_application_type.fields.add(surname_field)
         car_loan_application = Application.objects.create(

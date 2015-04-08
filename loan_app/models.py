@@ -4,8 +4,19 @@ from django.db.models.loading import get_model
 
 
 class ApplicationType(models.Model):
-    name = models.CharField(max_length=128)
-    short_name = models.CharField(max_length=8)
+    name = models.CharField(
+        u'название',
+        max_length=128
+    )
+    short_name = models.CharField(
+        u'краткое название',
+        max_length=8
+    )
+    key = models.SlugField(
+        u'уникальный идентификатор',
+        max_length=32,
+        unique=True,
+    )
     fields = models.ManyToManyField('loan_app.Field')
 
     def __unicode__(self):
@@ -13,15 +24,23 @@ class ApplicationType(models.Model):
             name=self.name,
         )
 
+    class Meta:
+        verbose_name = u'тип анкеты'
+        verbose_name_plural = u'типы анкет'
+
 
 class Application(models.Model):
     application_type = models.ForeignKey('loan_app.ApplicationType')
 
     def __unicode__(self):
-        return u'{type}-{number}'.format(
+        return u'{type}#{number}'.format(
             type=self.application_type.short_name,
             number=self.pk,
         )
+
+    class Meta:
+        verbose_name = u'анкета'
+        verbose_name_plural = u'анкеты'
 
 
 class Value(models.Model):
@@ -125,9 +144,17 @@ class Field(models.Model):
         BooleanValue,
         FloatValue,
     ]
-    key = models.CharField(max_length=32, unique=True)
-    name = models.CharField(max_length=64)
+    key = models.SlugField(
+        u'уникальный идентификатор',
+        max_length=32,
+        unique=True,
+    )
+    name = models.CharField(
+        u'название',
+        max_length=64,
+    )
     value_type = models.CharField(
+        u'тип',
         max_length=64,
         choices=(
             (
@@ -136,7 +163,8 @@ class Field(models.Model):
             )
             for value_type_model
             in VALUE_TYPE_MODELS
-        )
+        ),
+        default=VALUE_TYPE_MODELS[0].get_key(),
     )
 
     def __unicode__(self):
@@ -144,3 +172,7 @@ class Field(models.Model):
             name=self.name,
             type=self.get_value_type_display(),
         )
+
+    class Meta:
+        verbose_name = u'поле'
+        verbose_name_plural = u'поля'
