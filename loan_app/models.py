@@ -6,7 +6,7 @@ from django.db.models.loading import get_model
 class ApplicationType(models.Model):
     name = models.CharField(max_length=128)
     short_name = models.CharField(max_length=8)
-    attributes = models.ManyToManyField('loan_app.Attribute')
+    fields = models.ManyToManyField('loan_app.Field')
 
     def __unicode__(self):
         return u'{name}'.format(
@@ -25,7 +25,7 @@ class Application(models.Model):
 
 
 class Value(models.Model):
-    attribute = models.ForeignKey('loan_app.Attribute')
+    field = models.ForeignKey('loan_app.Field')
     application = models.ForeignKey('loan_app.Application')
 
     _value = None
@@ -48,8 +48,8 @@ class Value(models.Model):
             self._value = value
 
     def get_typified_value_model(self):
-        attribute = self.attribute
-        typified_value_model_name = attribute.value_type
+        field = self.field
+        typified_value_model_name = field.value_type
         value_type_model = get_model(*typified_value_model_name.split('.'))
         return value_type_model
 
@@ -108,7 +108,7 @@ class FloatValue(Value):
     typified_value = models.FloatField()
 
 
-class Attribute(models.Model):
+class Field(models.Model):
     VALUE_TYPE_MODELS = [
         CharValue,
         TextValue,
