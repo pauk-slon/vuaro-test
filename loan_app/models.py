@@ -66,16 +66,11 @@ class Value(models.Model):
         else:
             self._value = value
 
-    def get_typified_value_model(self):
-        field = self.field
-        typified_value_model_name = field.value_type
-        value_type_model = get_model(*typified_value_model_name.split('.'))
-        return value_type_model
-
     @property
     def typified_value_object(self):
         if not self._typified_value_object:
-            value_type_model = self.get_typified_value_model()
+            field = self.field
+            value_type_model = field.get_typified_value_model()
             try:
                 self._typified_value_object = (
                     value_type_model.objects.get(pk=self.pk)
@@ -90,7 +85,8 @@ class Value(models.Model):
             return
         typified_value_object = self.typified_value_object
         if not typified_value_object:
-            value_type_model = self.get_typified_value_model()
+            field = self.field
+            value_type_model = field.get_typified_value_model()
             typified_value_object = value_type_model(
                 value=self,
                 typified_value=self._value
@@ -166,6 +162,11 @@ class Field(models.Model):
         ),
         default=VALUE_TYPE_MODELS[0].get_key(),
     )
+
+    def get_typified_value_model(self):
+        typified_value_model_name = self.value_type
+        value_type_model = get_model(*typified_value_model_name.split('.'))
+        return value_type_model
 
     def __unicode__(self):
         return u'{name}: {type}'.format(
