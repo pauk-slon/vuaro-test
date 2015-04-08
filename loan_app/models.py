@@ -4,6 +4,11 @@ from django.db.models.loading import get_model
 
 
 class ApplicationType(models.Model):
+    key = models.SlugField(
+        u'уникальный идентификатор',
+        max_length=32,
+        unique=True,
+    )
     name = models.CharField(
         u'название',
         max_length=128
@@ -11,11 +16,6 @@ class ApplicationType(models.Model):
     short_name = models.CharField(
         u'краткое название',
         max_length=8
-    )
-    key = models.SlugField(
-        u'уникальный идентификатор',
-        max_length=32,
-        unique=True,
     )
     fields = models.ManyToManyField('loan_app.Field')
 
