@@ -3,8 +3,10 @@ from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from loan_app.models import Field
-from loan_app.serializers import FieldSerializer
+from loan_app.models import Field, ApplicationType
+from loan_app.serializers import (
+    FieldSerializer, ApplicationTypeSerializer,
+)
 
 
 class FieldViewSet(ModelViewSet):
@@ -19,3 +21,8 @@ class FieldViewSet(ModelViewSet):
             in Field.VALUE_TYPE_MODELS
         ]
         return Response(value_types)
+
+
+class ApplicationTypeViewSet(ModelViewSet):
+    queryset = ApplicationType.objects.all()
+    serializer_class = ApplicationTypeSerializer
