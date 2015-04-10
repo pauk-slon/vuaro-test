@@ -1,5 +1,4 @@
 # -*- coding: utf-8 -*-
-from django.http import Http404
 from rest_framework.compat import get_model_name
 from rest_framework.permissions import DjangoModelPermissions
 
