@@ -39,12 +39,12 @@ class ApplicationSerializer(ModelSerializer):
         queryset=ApplicationType.objects.all(),
     )
     values = ValueSerializer(many=True, source='value_set')
-    user = SlugRelatedField(slug_field='username', read_only=True)
+    owner = SlugRelatedField(slug_field='username', read_only=True)
 
     def create(self, validated_data):
         application = Application.objects.create(
             application_type=validated_data['application_type'],
-            user=validated_data['current_user'],
+            owner=validated_data['current_user'],
         )
         for value in validated_data['value_set']:
             value_object = Value(

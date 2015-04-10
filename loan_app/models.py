@@ -32,7 +32,7 @@ class ApplicationType(models.Model):
 
 class Application(models.Model):
     application_type = models.ForeignKey('loan_app.ApplicationType')
-    user = models.ForeignKey(User)
+    owner = models.ForeignKey(User)
 
     def __unicode__(self):
         return u'{type}#{number}'.format(
