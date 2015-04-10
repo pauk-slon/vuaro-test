@@ -3,11 +3,12 @@ from django.conf.urls import url, include
 from rest_framework.routers import DefaultRouter
 
 from loan_app.views import (
-    FieldViewSet, ApplicationTypeViewSet, ApplicationViewSet
+    FieldViewSet, ApplicationTypeViewSet, ApplicationViewSet, UserViewSet
 )
 
 
 router = DefaultRouter()
+router.register(r'users', UserViewSet)
 router.register(r'fields', FieldViewSet)
 router.register(r'application-types', ApplicationTypeViewSet)
 router.register(r'applications', ApplicationViewSet)

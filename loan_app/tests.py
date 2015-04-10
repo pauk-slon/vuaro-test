@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.contrib.auth.models import User
 from django.test import TestCase
 
 from loan_app.models import Field, ApplicationType, Application, Value, CharValue
@@ -17,8 +18,10 @@ class ValueTestCase(TestCase):
             key=u'car',
         )
         car_loan_application_type.fields.add(surname_field)
+        user = User.objects.create()
         car_loan_application = Application.objects.create(
-            application_type=car_loan_application_type
+            application_type=car_loan_application_type,
+            user=user,
         )
         test_surname_value = u'Петров'
         surname_value_object = Value(

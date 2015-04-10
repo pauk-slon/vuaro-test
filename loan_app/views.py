@@ -1,12 +1,19 @@
 # -*- coding: utf-8 -*-
+from django.contrib.auth.models import User
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from loan_app.models import Field, ApplicationType, Application
 from loan_app.serializers import (
-    FieldSerializer, ApplicationTypeSerializer, ApplicationSerializer
+    FieldSerializer, ApplicationTypeSerializer,
+    ApplicationSerializer, UserSerializer
 )
+
+
+class UserViewSet(ModelViewSet):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
 
 
 class FieldViewSet(ModelViewSet):
@@ -31,3 +38,7 @@ class ApplicationTypeViewSet(ModelViewSet):
 class ApplicationViewSet(ModelViewSet):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
+
+    def perform_create(self, serializer):
+        serializer.validated_data['current_user'] = self.request.user
+        return ModelViewSet.perform_create(self, serializer)

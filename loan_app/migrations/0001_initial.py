@@ -2,11 +2,13 @@
 from __future__ import unicode_literals
 
 from django.db import models, migrations
+from django.conf import settings
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
+        migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
@@ -25,9 +27,9 @@ class Migration(migrations.Migration):
             name='ApplicationType',
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
+                ('key', models.SlugField(unique=True, max_length=32, verbose_name='\u0443\u043d\u0438\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440')),
                 ('name', models.CharField(max_length=128, verbose_name='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
                 ('short_name', models.CharField(max_length=8, verbose_name='\u043a\u0440\u0430\u0442\u043a\u043e\u0435 \u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
-                ('key', models.SlugField(unique=True, max_length=32, verbose_name='\u0443\u043d\u0438\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440')),
             ],
             options={
                 'verbose_name': '\u0442\u0438\u043f \u0430\u043d\u043a\u0435\u0442\u044b',
@@ -150,6 +152,12 @@ class Migration(migrations.Migration):
             model_name='application',
             name='application_type',
             field=models.ForeignKey(to='loan_app.ApplicationType'),
+            preserve_default=True,
+        ),
+        migrations.AddField(
+            model_name='application',
+            name='user',
+            field=models.ForeignKey(to=settings.AUTH_USER_MODEL),
             preserve_default=True,
         ),
     ]

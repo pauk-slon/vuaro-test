@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 from django.db import models
 from django.db.models.loading import get_model
+from django.contrib.auth.models import User
 
 
 class ApplicationType(models.Model):
@@ -31,6 +32,7 @@ class ApplicationType(models.Model):
 
 class Application(models.Model):
     application_type = models.ForeignKey('loan_app.ApplicationType')
+    user = models.ForeignKey(User)
 
     def __unicode__(self):
         return u'{type}#{number}'.format(

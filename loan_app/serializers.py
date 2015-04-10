@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
-from rest_framework.relations import SlugRelatedField, RelatedField
+from rest_framework.relations import SlugRelatedField
 
 from loan_app.models import Field, ApplicationType, Application, Value
 from loan_app.value_serializers import ValueSerializer
@@ -22,16 +23,28 @@ class ApplicationTypeSerializer(ModelSerializer):
         model = ApplicationType
 
 
+class UserSerializer(ModelSerializer):
+    class Meta:
+        model = User
+        fields = (
+            'id',
+            'username',
+            'groups',
+        )
+
+
 class ApplicationSerializer(ModelSerializer):
     application_type = SlugRelatedField(
         slug_field='key',
         queryset=ApplicationType.objects.all(),
     )
     values = ValueSerializer(many=True, source='value_set')
+    user = SlugRelatedField(slug_field='username', read_only=True)
 
     def create(self, validated_data):
         application = Application.objects.create(
-            application_type=validated_data['application_type']
+            application_type=validated_data['application_type'],
+            user=validated_data['current_user'],
         )
         for value in validated_data['value_set']:
             value_object = Value(
@@ -54,8 +67,11 @@ class ApplicationSerializer(ModelSerializer):
             in validated_data.items()
             if item_key != 'value_set'
         }
-        ModelSerializer.update(self, instance, validated_data_without_values)
-        return instance
+        return ModelSerializer.update(
+            self,
+            instance,
+            validated_data_without_values
+        )
 
     class Meta:
         model = Application
