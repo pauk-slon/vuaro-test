@@ -43,6 +43,11 @@ class Application(models.Model):
     class Meta:
         verbose_name = u'анкета'
         verbose_name_plural = u'анкеты'
+        permissions = (
+            ('view_all_application', 'Can see all applications'),
+            ('change_all_application', 'Can change all applications'),
+            ('delete_all_application', 'Can delete all applications'),
+        )
 
 
 class Value(models.Model):

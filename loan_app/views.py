@@ -5,6 +5,9 @@ from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
 from loan_app.models import Field, ApplicationType, Application
+from loan_app.permissions import (
+    OwnerPolicyRestApiPermissions, OwnerPolicyPermissionHelper
+)
 from loan_app.serializers import (
     FieldSerializer, ApplicationTypeSerializer,
     ApplicationSerializer, UserSerializer
@@ -38,6 +41,18 @@ class ApplicationTypeViewSet(ModelViewSet):
 class ApplicationViewSet(ModelViewSet):
     queryset = Application.objects.all()
     serializer_class = ApplicationSerializer
+    permission_classes = [
+        OwnerPolicyRestApiPermissions,
+    ]
+
+    def get_queryset(self):
+        base_queryset = ModelViewSet.get_queryset(self)
+        request = self.request
+        user = request.user
+        return OwnerPolicyPermissionHelper.filter_queryset(
+            user=user,
+            queryset=base_queryset,
+        )
 
     def perform_create(self, serializer):
         serializer.validated_data['current_user'] = self.request.user
