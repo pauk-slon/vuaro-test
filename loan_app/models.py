@@ -18,7 +18,6 @@ class ApplicationType(models.Model):
         u'краткое название',
         max_length=8
     )
-    fields = models.ManyToManyField('loan_app.Field')
 
     def __unicode__(self):
         return u'{name}'.format(
@@ -77,7 +76,8 @@ class Value(models.Model):
     def typified_value_object(self):
         if not self._typified_value_object:
             field = self.field
-            value_type_model = field.get_typified_value_model()
+            field_type = field.field_type
+            value_type_model = field_type.get_typified_value_model()
             try:
                 self._typified_value_object = (
                     value_type_model.objects.get(pk=self.pk)
@@ -93,7 +93,8 @@ class Value(models.Model):
         typified_value_object = self.typified_value_object
         if not typified_value_object:
             field = self.field
-            value_type_model = field.get_typified_value_model()
+            field_type = field.field_type
+            value_type_model = field_type.get_typified_value_model()
             typified_value_object = value_type_model(
                 value=self,
                 typified_value=self._value
@@ -137,7 +138,7 @@ class FloatValue(Value):
     typified_value = models.FloatField()
 
 
-class Field(models.Model):
+class FieldType(models.Model):
     VALUE_TYPE_MODELS = [
         CharValue,
         TextValue,
@@ -155,6 +156,7 @@ class Field(models.Model):
     name = models.CharField(
         u'название',
         max_length=64,
+        unique=True,
     )
     value_type = models.CharField(
         u'тип',
@@ -176,11 +178,43 @@ class Field(models.Model):
         return value_type_model
 
     def __unicode__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = u'тип поля'
+        verbose_name_plural = u'типы полей'
+
+
+class Field(models.Model):
+    application_type = models.ForeignKey(
+        'loan_app.ApplicationType',
+    )
+    key = models.SlugField(
+        u'уникальный идентификатор',
+        max_length=32,
+    )
+    name = models.CharField(
+        u'название',
+        max_length=64,
+    )
+    field_type = models.ForeignKey(
+        'loan_app.FieldType',
+    )
+    required = models.BooleanField(
+        u'обязательное для заполнения',
+        default=False
+    )
+
+    def __unicode__(self):
         return u'{name}: {type}'.format(
             name=self.name,
-            type=self.get_value_type_display(),
+            type=self.field_type,
         )
 
     class Meta:
         verbose_name = u'поле'
         verbose_name_plural = u'поля'
+        unique_together = (
+            'application_type',
+            'key',
+        )

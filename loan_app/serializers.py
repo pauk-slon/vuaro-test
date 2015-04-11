@@ -3,20 +3,36 @@ from django.contrib.auth.models import User
 from rest_framework.serializers import ModelSerializer
 from rest_framework.relations import SlugRelatedField
 
-from loan_app.models import Field, ApplicationType, Application, Value
+from loan_app.models import (
+    FieldType, Field, ApplicationType, Application, Value
+)
 from loan_app.value_serializers import ValueSerializer
 
 
+class FieldTypeSerializer(ModelSerializer):
+    class Meta:
+        model = FieldType
+
+
 class FieldSerializer(ModelSerializer):
+    field_type = SlugRelatedField(
+        slug_field='key',
+        queryset=FieldType.objects.all(),
+    )
+
     class Meta:
         model = Field
+        exclude = (
+            'application_type',
+        )
 
 
 class ApplicationTypeSerializer(ModelSerializer):
     fields = SlugRelatedField(
         many=True,
         slug_field='key',
-        queryset=Field.objects.all(),
+        read_only=True,
+        source='field_set',
     )
 
     class Meta:

@@ -88,7 +88,8 @@ class ValueSerializer(ModelSerializer):
     def to_internal_value(self, data):
         internal_value = ModelSerializer.to_internal_value(self, data)
         field = internal_value['field']
-        typified_value_model = field.get_typified_value_model()
+        field_type = field.field_type
+        typified_value_model = field_type.get_typified_value_model()
         typified_value_serializer_class = (
             TYPIFIED_VALUE_SERIALIZERS_CLASS_DICT.get(typified_value_model)
         )

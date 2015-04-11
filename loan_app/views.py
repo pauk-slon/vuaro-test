@@ -1,27 +1,45 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.models import User
+from django.http import Http404
+from django.shortcuts import get_object_or_404
 from rest_framework.decorators import list_route
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from loan_app.models import Field, ApplicationType, Application
+from loan_app.models import FieldType, Field, ApplicationType, Application
 from loan_app.permissions import (
     OwnerPolicyRestApiPermissions, OwnerPolicyPermissionHelper
 )
 from loan_app.serializers import (
-    FieldSerializer, ApplicationTypeSerializer,
+    FieldTypeSerializer, FieldSerializer, ApplicationTypeSerializer,
     ApplicationSerializer, UserSerializer
 )
 
 
-class UserViewSet(ModelViewSet):
+class GetBySlugViewSetMixin(object):
+    SLUG_FIELD_NAME = 'key'
+
+    def get_object(self):
+        try:
+            return super(GetBySlugViewSetMixin, self).get_object()
+        except Http404:
+            queryset = self.filter_queryset(self.get_queryset())
+            lookup_url_kwarg = self.lookup_url_kwarg or self.lookup_field
+            filter_kwargs = {
+                self.SLUG_FIELD_NAME: self.kwargs[lookup_url_kwarg]
+            }
+            return get_object_or_404(queryset, **filter_kwargs)
+
+
+class UserViewSet(GetBySlugViewSetMixin, ModelViewSet):
+    SLUG_FIELD_NAME = 'username'
     queryset = User.objects.all()
     serializer_class = UserSerializer
 
 
-class FieldViewSet(ModelViewSet):
-    queryset = Field.objects.all()
-    serializer_class = FieldSerializer
+class FieldTypeViewSet(GetBySlugViewSetMixin, ModelViewSet):
+    queryset = FieldType.objects.all()
+    serializer_class = FieldTypeSerializer
 
     @list_route(url_path='value-types')
     def value_types(self, request, *args, **kwargs):
@@ -33,7 +51,29 @@ class FieldViewSet(ModelViewSet):
         return Response(value_types)
 
 
-class ApplicationTypeViewSet(ModelViewSet):
+class FieldViewSet(ModelViewSet):
+    queryset = Field.objects.all()
+    serializer_class = FieldSerializer
+
+    def perform_create(self, serializer):
+        application_type_key = self.kwargs['application_type_key']
+        application_type = None
+        try:
+            application_type = ApplicationType.objects.get(
+                key=application_type_key
+            )
+        except ApplicationType.DoesNotExist:
+            pass
+        if application_type is None:
+            application_type = get_object_or_404(
+                ApplicationType,
+                pk=application_type_key
+            )
+        serializer.validated_data['application_type'] = application_type
+        return ModelViewSet.perform_create(self, serializer)
+
+
+class ApplicationTypeViewSet(GetBySlugViewSetMixin, ModelViewSet):
     queryset = ApplicationType.objects.all()
     serializer_class = ApplicationTypeSerializer
 
