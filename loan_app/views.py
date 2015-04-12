@@ -51,24 +51,37 @@ class FieldTypeViewSet(GetBySlugViewSetMixin, ModelViewSet):
         return Response(value_types)
 
 
-class FieldViewSet(ModelViewSet):
+class FieldViewSet(GetBySlugViewSetMixin, ModelViewSet):
     queryset = Field.objects.all()
     serializer_class = FieldSerializer
 
-    def perform_create(self, serializer):
-        application_type_key = self.kwargs['application_type_key']
-        application_type = None
+    @property
+    def application_type_key(self):
+        return self.kwargs['application_type_key']
+
+    def get_application_type(self):
         try:
-            application_type = ApplicationType.objects.get(
-                key=application_type_key
+            return ApplicationType.objects.get(
+                key=self.application_type_key
             )
         except ApplicationType.DoesNotExist:
-            pass
-        if application_type is None:
-            application_type = get_object_or_404(
-                ApplicationType,
-                pk=application_type_key
-            )
+            try:
+                return ApplicationType.objects.get(
+                    pk=self.application_type_key
+                )
+            except ApplicationType.DoesNotExist:
+                pass
+        raise Http404()
+
+    def get_queryset(self):
+        application_type = self.get_application_type()
+        queryset = ModelViewSet.get_queryset(self)
+        return queryset.filter(
+            application_type__pk=application_type.pk
+        )
+
+    def perform_create(self, serializer):
+        application_type = self.get_application_type()
         serializer.validated_data['application_type'] = application_type
         return ModelViewSet.perform_create(self, serializer)
 
