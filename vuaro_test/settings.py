@@ -111,3 +111,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissions'
     ]
 }
+
+LANGUAGE_CODE = 'ru-ru'

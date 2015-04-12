@@ -109,6 +109,17 @@ class Value(models.Model):
             class_name=cls._meta.object_name,
         )
 
+    class Meta:
+        verbose_name = u'значение поля'
+        verbose_name_plural = u'значения полей'
+
+    def __unicode__(self):
+        value = getattr(self, 'typified_value', self.value)
+        return u'{field_key}={field_value}'.format(
+            field_key=self.field.key,
+            field_value=value,
+        )
+
 
 class CharValue(Value):
     typified_value = models.CharField(max_length=512)
