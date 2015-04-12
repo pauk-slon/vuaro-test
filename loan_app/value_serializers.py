@@ -99,7 +99,11 @@ class ValueSerializer(ModelSerializer):
                     typified_value_model=typified_value_model
                 )
             )
+        raw_value = data.get('value', None)
+        if not raw_value and not field.required:
+            return internal_value
         typified_value_serializer = typified_value_serializer_class(data=data)
+        typified_value_serializer.fields['typified_value'].required = False
         typified_value_serializer.is_valid(raise_exception=True)
         return typified_value_serializer.validated_data
 

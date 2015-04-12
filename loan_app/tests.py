@@ -192,25 +192,27 @@ class FieldApiTestCase(
         self.assert_are_fields_equal(test_data, fields[0])
 
 
-class ApplicationApiTestCase(CreateUserTestCaseMixin,
+class ApplicationApiTestCase(
+    CreateUserTestCaseMixin,
     APITestCase,
 ):
+    test_data_json_template = u"""{{
+        "application_type": "{application_type}",
+        "values": [
+            {{
+                "field": "{field}",
+                "value": "{value}"
+            }}
+        ]
+    }}"""
+
     def test_create(self):
         field = FieldFactory()
         value = u'тестовое значение'
-        test_data_json_template = u"""{{
-            "application_type": "{application_type}",
-            "values": [
-                {{
-                    "field": "{field_1}",
-                    "value": "{value_1}"
-                }}
-            ]
-        }}"""
-        test_data = test_data_json_template.format(
+        test_data = self.test_data_json_template.format(
             application_type=field.application_type.key,
-            field_1=field.key,
-            value_1=value,
+            field=field.key,
+            value=value,
         )
         self.client.force_authenticate(user=self.get_django_superuser())
         response = self.client.post(
@@ -233,3 +235,35 @@ class ApplicationApiTestCase(CreateUserTestCaseMixin,
         self.assertEquals(value_objects.count(), 1)
         self.assertEquals(value_objects[0].field, field)
         self.assertEquals(value_objects[0].value, value)
+
+    def test_not_required_fields(self):
+        field = FieldFactory(required=False)
+        test_data = self.test_data_json_template.format(
+            application_type=field.application_type.key,
+            field=field.key,
+            value='',
+        )
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.post(
+            reverse('loan_app:application-list'),
+            test_data,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        value_objects = Value.objects.all()
+        self.assertEquals(value_objects.count(), 0)
+
+    def test_required_fields(self):
+        field = FieldFactory(required=True)
+        test_data = self.test_data_json_template.format(
+            application_type=field.application_type.key,
+            field=field.key,
+            value='',
+        )
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.post(
+            reverse('loan_app:application-list'),
+            test_data,
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

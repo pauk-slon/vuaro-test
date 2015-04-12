@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 from django.contrib.auth.models import User
-from rest_framework.serializers import ModelSerializer
+from rest_framework.exceptions import ValidationError
 from rest_framework.relations import SlugRelatedField
+from rest_framework.serializers import ModelSerializer
 
 from loan_app.models import (
     FieldType, Field, ApplicationType, Application, Value
@@ -28,9 +29,8 @@ class FieldSerializer(ModelSerializer):
 
 
 class ApplicationTypeSerializer(ModelSerializer):
-    fields = SlugRelatedField(
+    fields = FieldSerializer(
         many=True,
-        slug_field='key',
         read_only=True,
         source='field_set',
     )
@@ -58,11 +58,35 @@ class ApplicationSerializer(ModelSerializer):
     owner = SlugRelatedField(slug_field='username', read_only=True)
 
     def create(self, validated_data):
+        application_type = validated_data['application_type']
+        required_fields = application_type.field_set.filter(
+            required=True
+        )
+        required_field_keys = [
+            required_field.key
+            for required_field
+            in required_fields
+        ]
+        available_value_keys = [
+            value_item['field'].key
+            for value_item
+            in validated_data['value_set']
+        ]
+        for required_field_key in required_field_keys:
+            if required_field_key not in available_value_keys:
+                raise ValidationError(detail={
+                    'values': "required field '{field_key}' is missed".format(
+                        field_key=required_field_key
+                    )
+                })
         application = Application.objects.create(
-            application_type=validated_data['application_type'],
+            application_type=application_type,
             owner=validated_data['current_user'],
         )
+
         for value in validated_data['value_set']:
+            if 'typified_value' not in value:
+                continue
             value_object = Value(
                 application=application,
                 field=value['field'],
