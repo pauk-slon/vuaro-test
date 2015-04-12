@@ -193,38 +193,43 @@ class FieldApiTestCase(
 
 
 class ApplicationApiTestCase(CreateUserTestCaseMixin,
-    AssertAreFieldsEqualTestCaseMixin,
     APITestCase,
 ):
     def test_create(self):
         field = FieldFactory()
         value = u'тестовое значение'
-        test_data = {
-            u'application_type': field.application_type.key,
-            u'values': [
-                {
-                    u'field': field.key,
-                    u'value': value,
-                },
-            ],
-        }
+        test_data_json_template = u"""{{
+            "application_type": "{application_type}",
+            "values": [
+                {{
+                    "field": "{field_1}",
+                    "value": "{value_1}"
+                }}
+            ]
+        }}"""
+        test_data = test_data_json_template.format(
+            application_type=field.application_type.key,
+            field_1=field.key,
+            value_1=value,
+        )
         self.client.force_authenticate(user=self.get_django_superuser())
-        from pprint import pprint
-        pprint(test_data)
         response = self.client.post(
             reverse('loan_app:application-list'),
             test_data,
+            content_type='application/json',
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         applications = Application.objects.all()
         self.assertEquals(applications.count(), 1)
-        self.assert_are_fields_equal(test_data, applications[0])
+        self.assertEquals(
+            applications[0].application_type,
+            field.application_type,
+        )
         self.assertEquals(
             self.get_django_superuser(),
             applications[0].owner,
         )
-        """
-        values = applications[0].value_set.all()
-        self.assertEquals(values.count(), 1)
-        self.assert_are_fields_equal(test_data['values'][0], values[0])
-        """
+        value_objects = applications[0].value_set.all()
+        self.assertEquals(value_objects.count(), 1)
+        self.assertEquals(value_objects[0].field, field)
+        self.assertEquals(value_objects[0].value, value)
