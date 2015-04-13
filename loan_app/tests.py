@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import json
+
 from django.contrib.auth.models import User
 from django.core.urlresolvers import reverse
 from django.db.models import Model
@@ -7,7 +9,7 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 
 from loan_app.factories import (
-    ApplicationTypeFactory, FieldTypeFactory, FieldFactory
+    ApplicationTypeFactory, FieldTypeFactory, FieldFactory, ApplicationFactory
 )
 from loan_app.models import (
     ApplicationType, FieldType, Field, Application, Value, CharValue
@@ -291,3 +293,117 @@ class ApplicationApiTestCase(
             content_type='application/json',
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_values(self):
+        application = ApplicationFactory()
+        test_data = {
+            'id': application.id,
+            'application_type': application.application_type.key,
+            'values': [],
+        }
+        new_value = u'new value'
+        for field_object in application.application_type.field_set.all():
+            test_data[u'values'].append({
+                'field': field_object.key,
+                'value': new_value,
+            })
+        self.client.force_authenticate(user=self.get_django_superuser())
+        path = reverse(
+            viewname='loan_app:application-detail',
+            kwargs={'pk': application.pk},
+        )
+        response = self.client.put(
+            path,
+            json.dumps(test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        values = [
+            value_object.value
+            for value_object
+            in application.value_set.all()
+        ]
+        self.assertEquals(
+            application.application_type.field_set.count(),
+            len(values),
+        )
+        self.assertTrue(
+            all(value == new_value for value in values)
+        )
+        # if an unrequired value is empty,
+        # the respective record has to be deleted
+        not_required_fields = application.application_type.field_set.filter(
+            required=False,
+        )
+        for field_object in not_required_fields:
+            for value_item in test_data[u'values']:
+                if value_item['field'] == field_object.key:
+                    value_item['value'] = u''
+        response = self.client.put(
+            path,
+            json.dumps(test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        values = [
+            value_object.value
+            for value_object
+            in application.value_set.all()
+        ]
+        required_fields = application.application_type.field_set.filter(
+            required=True,
+        )
+        self.assertEquals(
+            required_fields.count(),
+            len(values),
+        )
+        not_required_values = application.value_set.filter(
+            field__required=False
+        )
+        self.assertEquals(not_required_values.count(), 0)
+        # if request doesn't contain an unrequired value,
+        # the respective record has to be deleted
+        for not_required_field in not_required_fields:
+            new_value_object = Value(
+                application=application,
+                field=not_required_field,
+            )
+            new_value_object.value = new_value
+            new_value_object.save()
+        required_field_keys = [
+            required_field.key
+            for required_field
+            in required_fields
+        ]
+        test_data[u'values'] = [
+            value_item
+            for value_item
+            in test_data[u'values']
+            if value_item['field'] in required_field_keys
+        ]
+        response = self.client.put(
+            path,
+            json.dumps(test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEquals(not_required_values.count(), 0)
+        # if request doesn't contain any required value,
+        # raise an exception
+        self.assertTrue(
+            required_fields.count(),
+            msg=(
+                u"the test application doesn't contain any required field,"
+                u"this test cannot be executed correctly"
+            )
+        )
+        test_data[u'values'] = []
+        response = self.client.put(
+            path,
+            json.dumps(test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST
+        )

@@ -57,9 +57,18 @@ class ApplicationSerializer(ModelSerializer):
     values = ValueSerializer(many=True, source='value_set')
     owner = SlugRelatedField(slug_field='username', read_only=True)
 
-    def create(self, validated_data):
+    def _get_available_field_keys(self, validated_data):
+        available_field_keys = [
+            value_item['field'].key
+            for value_item
+            in validated_data['value_set']
+        ]
+        return available_field_keys
+
+    def _check_required_fields_availability(self, validated_data):
         application_type = validated_data['application_type']
-        required_fields = application_type.field_set.filter(
+        fields = application_type.field_set
+        required_fields = fields.filter(
             required=True
         )
         required_field_keys = [
@@ -67,18 +76,18 @@ class ApplicationSerializer(ModelSerializer):
             for required_field
             in required_fields
         ]
-        available_value_keys = [
-            value_item['field'].key
-            for value_item
-            in validated_data['value_set']
-        ]
+        available_field_keys = self._get_available_field_keys(validated_data)
         for required_field_key in required_field_keys:
-            if required_field_key not in available_value_keys:
+            if required_field_key not in available_field_keys:
                 raise ValidationError(detail={
                     'values': "required field '{field_key}' is missed".format(
                         field_key=required_field_key
                     )
                 })
+
+    def create(self, validated_data):
+        application_type = validated_data['application_type']
+        self._check_required_fields_availability(validated_data)
         application = Application.objects.create(
             application_type=application_type,
             owner=validated_data['current_user'],
@@ -96,9 +105,38 @@ class ApplicationSerializer(ModelSerializer):
         return application
 
     def update(self, instance, validated_data):
+        if not self.partial:
+            self._check_required_fields_availability(validated_data)
+            available_field_keys = self._get_available_field_keys(
+                validated_data
+            )
+            application_type = instance.application_type
+            not_required_field_keys = application_type.field_set.filter(
+                required=False,
+            ).values_list(
+                'key',
+                flat=True
+            )
+            missed_not_required_field_keys = (
+                set(not_required_field_keys) - set(available_field_keys)
+            )
+            instance.value_set.filter(
+                field__key__in=missed_not_required_field_keys
+            ).delete()
         for value in validated_data['value_set']:
             field = value['field']
-            value_object = instance.value_set.get(field=field)
+            if 'typified_value' not in value:
+                instance.value_set.filter(
+                    field=field
+                ).delete()
+                continue
+            try:
+                value_object = instance.value_set.get(field=field)
+            except Value.DoesNotExist:
+                value_object = Value(
+                    field=field,
+                    application=instance,
+                )
             value_object.value = value['typified_value']
             value_object.save()
         validated_data_without_values = {

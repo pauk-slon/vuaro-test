@@ -7,7 +7,7 @@ from django.contrib.auth.models import User
 class ApplicationType(models.Model):
     key = models.SlugField(
         u'уникальный идентификатор',
-        max_length=32,
+        max_length=64,
         unique=True,
     )
     name = models.CharField(
@@ -161,7 +161,7 @@ class FieldType(models.Model):
     ]
     key = models.SlugField(
         u'уникальный идентификатор',
-        max_length=32,
+        max_length=64,
         unique=True,
     )
     name = models.CharField(
@@ -202,7 +202,7 @@ class Field(models.Model):
     )
     key = models.SlugField(
         u'уникальный идентификатор',
-        max_length=32,
+        max_length=64,
     )
     name = models.CharField(
         u'название',
