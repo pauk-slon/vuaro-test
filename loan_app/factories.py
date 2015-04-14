@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, Permission
 from factory import (
     Sequence, SubFactory, post_generation, LazyAttributeSequence
 )
@@ -47,6 +47,17 @@ class FieldFactory(DjangoModelFactory):
 
 class UserFactory(DjangoModelFactory):
     username = Sequence(lambda n: u'user-{0:02}'.format(n))
+
+    @post_generation
+    def add_permissions(self, create, extracted, **kwargs):
+        change_application_permission = Permission.objects.get(
+            codename='change_application'
+        )
+        self.user_permissions.add(change_application_permission)
+        delete_application_permission = Permission.objects.get(
+            codename='delete_application'
+        )
+        self.user_permissions.add(delete_application_permission)
 
     class Meta:
         model = User
