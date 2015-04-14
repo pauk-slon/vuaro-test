@@ -12,11 +12,11 @@ class ApplicationType(models.Model):
     )
     name = models.CharField(
         u'название',
-        max_length=128
+        max_length=128,
     )
     short_name = models.CharField(
         u'краткое название',
-        max_length=8
+        max_length=8,
     )
 
     def __unicode__(self):
@@ -181,6 +181,13 @@ class FieldType(models.Model):
             in VALUE_TYPE_MODELS
         ),
         default=VALUE_TYPE_MODELS[0].get_key(),
+    )
+    regex_pattern = models.CharField(
+        u'RegEx-шаблон',
+        help_text=u'шаблон, которому должно соответствовать значение',
+        max_length=256,
+        blank=True,
+        default=u'',
     )
 
     def get_typified_value_model(self):

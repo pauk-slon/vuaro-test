@@ -199,3 +199,43 @@ class ApplicationApiTestCase(
             response.status_code,
             status.HTTP_400_BAD_REQUEST
         )
+
+    def test_regex_pattern_validation(self):
+        application = ApplicationFactory()
+        application_type = application.application_type
+        values_data = []
+        for field in application_type.field_set.all():
+            field_type = field.field_type
+            field_type.regex_pattern = u'^\d{5}$'
+            field_type.save()
+            values_data.append(
+                {
+                    'field': field.key,
+                    'value': u'11111'
+                }
+            )
+        test_data = {
+            'application_type': application_type.key,
+            'values': values_data,
+        }
+        path = reverse(
+            viewname='loan_app:application-detail',
+            kwargs={'pk': application.pk},
+        )
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.put(
+            path,
+            json.dumps(test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        for value_item in test_data['values']:
+            value_item['value'] = u'new_{old_value}'.format(
+                old_value=value_item['value'],
+            )
+        response = self.client.put(
+            path,
+            json.dumps(test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)

@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+from django.core.validators import RegexValidator
 from rest_framework.exceptions import APIException
 from rest_framework.serializers import ModelSerializer
 from rest_framework.relations import SlugRelatedField
@@ -104,6 +105,15 @@ class ValueSerializer(ModelSerializer):
             return internal_value
         typified_value_serializer = typified_value_serializer_class(data=data)
         typified_value_serializer.fields['typified_value'].required = False
+        regex_pattern = field_type.regex_pattern
+        if regex_pattern:
+            regex_validator = RegexValidator(
+                regex=regex_pattern,
+            )
+            typified_value_field = (
+                typified_value_serializer.fields['typified_value']
+            )
+            typified_value_field.validators.append(regex_validator)
         typified_value_serializer.is_valid(raise_exception=True)
         return typified_value_serializer.validated_data
 
