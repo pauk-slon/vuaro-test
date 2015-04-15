@@ -1,4 +1,6 @@
 # -*- coding: utf-8 -*-
+import itertools
+
 from django.contrib.auth.models import User
 from rest_framework.exceptions import ValidationError
 from rest_framework.relations import SlugRelatedField
@@ -57,11 +59,12 @@ class ApplicationSerializer(ModelSerializer):
     values = ValueSerializer(many=True, source='value_set')
     owner = SlugRelatedField(slug_field='username', read_only=True)
 
-    def _get_available_field_keys(self, validated_data):
+    def _get_available_field_keys(self, validated_data, only_non_empty=False):
         available_field_keys = [
             value_item['field'].key
             for value_item
             in validated_data['value_set']
+            if not only_non_empty or 'typified_value' in value_item
         ]
         return available_field_keys
 
@@ -85,9 +88,41 @@ class ApplicationSerializer(ModelSerializer):
                     )
                 })
 
+    def _check_at_least_one_required_constraints(self, validated_data):
+        application_type = validated_data['application_type']
+        fields = application_type.field_set.all()
+        at_least_one_required_fields = fields.exclude(
+            at_least_one_required=u'',
+        ).order_by(
+            'at_least_one_required',
+        )
+        grouped_fields = itertools.groupby(
+            at_least_one_required_fields,
+            lambda f: f.at_least_one_required
+        )
+        non_empty_field_keys = self._get_available_field_keys(
+            validated_data,
+            only_non_empty=True
+        )
+        for at_least_one_required, group in grouped_fields:
+            group_field_keys = [field.key for field in group]
+            if all(
+                field_key not in non_empty_field_keys
+                for field_key in group_field_keys
+            ):
+                raise ValidationError(detail={
+                    'values': (
+                        'at least one form {field_keys} '
+                        'has to be defined'.format(
+                            field_keys=u', '.join(group_field_keys)
+                        )
+                    )
+                })
+
     def create(self, validated_data):
         application_type = validated_data['application_type']
         self._check_required_fields_availability(validated_data)
+        self._check_at_least_one_required_constraints(validated_data)
         application = Application.objects.create(
             application_type=application_type,
             owner=validated_data['current_user'],
@@ -107,6 +142,7 @@ class ApplicationSerializer(ModelSerializer):
     def update(self, instance, validated_data):
         if not self.partial:
             self._check_required_fields_availability(validated_data)
+            self._check_at_least_one_required_constraints(validated_data)
             available_field_keys = self._get_available_field_keys(
                 validated_data
             )

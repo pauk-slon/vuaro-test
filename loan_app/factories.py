@@ -82,6 +82,8 @@ class ApplicationFactory(DjangoModelFactory):
             application_type=self.application_type,
             required=False,
         )
+        if not create:
+            return
         value_object = Value(
             application=self,
             field=required_field,

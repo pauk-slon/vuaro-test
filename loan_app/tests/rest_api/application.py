@@ -5,12 +5,14 @@ from django.core.urlresolvers import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
 
-from loan_app.factories import FieldFactory, ApplicationFactory
+from loan_app.factories import (
+    FieldFactory, ApplicationFactory, ApplicationTypeFactory
+)
 from loan_app.models import Application, Value
 from loan_app.tests.rest_api.base import CreateUserTestCaseMixin
 
 
-class ApplicationApiTestCase(
+class PostApplicationApiTestCase(
     CreateUserTestCaseMixin,
     APITestCase,
 ):
@@ -86,6 +88,11 @@ class ApplicationApiTestCase(
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
+
+class PutApplicationApiTestCase(
+    CreateUserTestCaseMixin,
+    APITestCase,
+):
     def test_update_values(self):
         application = ApplicationFactory()
         test_data = {
@@ -239,3 +246,136 @@ class ApplicationApiTestCase(
             content_type='application/json',
         )
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+
+class AtLeastOneRequiredValidationTestCase(
+    CreateUserTestCaseMixin,
+    APITestCase,
+):
+    def setUp(self):
+        super(AtLeastOneRequiredValidationTestCase, self).setUp()
+        self.application_type = ApplicationTypeFactory()
+        at_least_one_required_group = 'at_leas_one_required'
+        self.field_1 = FieldFactory(
+            application_type=self.application_type,
+            required=False,
+            at_least_one_required=at_least_one_required_group,
+        )
+        self.field_2 = FieldFactory(
+            application_type=self.application_type,
+            required=False,
+            at_least_one_required=at_least_one_required_group,
+        )
+        self.at_least_one_is_filled_test_data = {
+            'application_type': self.application_type.key,
+            'values': [
+                {
+                    'field': self.field_1.key,
+                    'value': u'value-1'
+                },
+                {
+                    'field': self.field_2.key,
+                    'value': u''
+                }
+            ]
+        }
+        self.all_are_empty_test_data_list = [
+            {
+                'application_type': self.application_type.key,
+                'values': [
+                    {
+                        'field': self.field_1.key,
+                        'value': u''
+                    },
+                    {
+                        'field': self.field_2.key,
+                        'value': u''
+                    },
+                ],
+            },
+            {
+                'application_type': self.application_type.key,
+                'values': [
+                    {
+                        'field': self.field_1.key,
+                        'value': u''
+                    }
+                ],
+            },
+            {
+                'application_type': self.application_type.key,
+                'values': [],
+            },
+        ]
+
+    def test_create_at_least_one_is_filled(self):
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.post(
+            reverse('loan_app:application-list'),
+            json.dumps(self.at_least_one_is_filled_test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_201_CREATED,
+        )
+
+    def test_create_all_are_empty(self):
+        for test_data in self.all_are_empty_test_data_list:
+            self.assert_bad_create_request(test_data)
+
+    def assert_bad_create_request(self, data):
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.post(
+            reverse('loan_app:application-list'),
+            json.dumps(data),
+            content_type='application/json',
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )
+
+    def test_update_at_least_one_is_filled(self):
+        application = Application.objects.create(
+            application_type=self.application_type,
+            owner=self.get_django_superuser(),
+        )
+        path = reverse(
+            viewname='loan_app:application-detail',
+            kwargs={'pk': application.pk},
+        )
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.put(
+            path,
+            json.dumps(self.at_least_one_is_filled_test_data),
+            content_type='application/json',
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_200_OK,
+        )
+
+    def test_update_all_are_empty(self):
+        application = Application.objects.create(
+            application_type=self.application_type,
+            owner=self.get_django_superuser(),
+        )
+        path = reverse(
+            viewname='loan_app:application-detail',
+            kwargs={'pk': application.pk},
+        )
+        for test_data in self.all_are_empty_test_data_list:
+            self.assert_bad_update_request(path, test_data)
+
+    def assert_bad_update_request(self, path, data):
+        self.client.force_authenticate(user=self.get_django_superuser())
+        response = self.client.put(
+            path,
+            json.dumps(data),
+            content_type='application/json',
+        )
+        self.assertEqual(
+            response.status_code,
+            status.HTTP_400_BAD_REQUEST,
+        )

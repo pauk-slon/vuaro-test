@@ -222,6 +222,14 @@ class Field(models.Model):
         u'обязательное для заполнения',
         default=False
     )
+    at_least_one_required = models.CharField(
+        u'обязательно хотя бы одно',
+        help_text=u'будет требоваться заполнение хотя бы одного поля '
+                  u'из тех, у которых данное поле одинаково',
+        max_length=128,
+        blank=True,
+        default=u'',
+    )
 
     def __unicode__(self):
         return u'{name}: {type}'.format(
