@@ -213,7 +213,7 @@ class Field(models.Model):
     )
     name = models.CharField(
         u'название',
-        max_length=64,
+        max_length=128,
     )
     field_type = models.ForeignKey(
         'loan_app.FieldType',
