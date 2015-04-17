@@ -17,8 +17,8 @@ class FieldTypeApiTestCase(
 ):
     def test_create_field_type(self):
         test_data = {
-            'key': 'string',
-            'name': u'строка',
+            'key': 'test-string',
+            'name': u'строка тест',
             'value_type': 'loan_app.CharValue',
         }
         self.client.force_authenticate(user=self.get_django_superuser())
@@ -27,9 +27,10 @@ class FieldTypeApiTestCase(
             test_data
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        field_types = FieldType.objects.all()
-        self.assertEquals(field_types.count(), 1)
-        self.assert_are_fields_equal(test_data, field_types[0])
+        field_type = FieldType.objects.get(
+            key=test_data['key']
+        )
+        self.assert_are_fields_equal(test_data, field_type)
 
     def test_get_by_key(self):
         field_type = FieldTypeFactory()

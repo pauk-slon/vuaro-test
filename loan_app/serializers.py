@@ -59,6 +59,14 @@ class ApplicationSerializer(ModelSerializer):
     values = ValueSerializer(many=True, source='value_set')
     owner = SlugRelatedField(slug_field='username', read_only=True)
 
+    def to_internal_value(self, data):
+        value_serializer = self.fields['values'].child
+        field = value_serializer.fields['field']
+        field.queryset = Field.objects.filter(
+            application_type__key=data.get('application_type'),
+        )
+        return ModelSerializer.to_internal_value(self, data)
+
     def _get_available_field_keys(self, validated_data, only_non_empty=False):
         available_field_keys = [
             value_item['field'].key

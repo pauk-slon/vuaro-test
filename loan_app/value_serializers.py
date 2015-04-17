@@ -104,6 +104,9 @@ class ValueSerializer(ModelSerializer):
         if not raw_value and not field.required:
             return internal_value
         typified_value_serializer = typified_value_serializer_class(data=data)
+        typified_value_serializer.fields['field'].queryset = (
+            self.fields['field'].get_queryset()
+        )
         typified_value_serializer.fields['typified_value'].required = False
         regex_pattern = field_type.regex_pattern
         if regex_pattern:

@@ -37,9 +37,11 @@ class FieldApiTestCase(
             test_data,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        fields = Field.objects.all()
-        self.assertEquals(fields.count(), 1)
-        self.assert_are_fields_equal(test_data, fields[0])
+        field_object = Field.objects.get(
+            key=test_data['key'],
+            application_type__key=application_type.key,
+        )
+        self.assert_are_fields_equal(test_data, field_object)
 
     def test_update_field(self):
         field = FieldFactory(required=False)
@@ -61,6 +63,8 @@ class FieldApiTestCase(
         self.client.force_authenticate(user=self.get_django_superuser())
         response = self.client.put(url, test_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        fields = Field.objects.all()
-        self.assertEquals(fields.count(), 1)
-        self.assert_are_fields_equal(test_data, fields[0])
+        field_object = Field.objects.get(
+            key=test_data['key'],
+            application_type__key=application_type.key,
+        )
+        self.assert_are_fields_equal(test_data, field_object)

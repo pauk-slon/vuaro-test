@@ -27,9 +27,8 @@ class ApplicationTypeApiTestCase(
             test_data,
         )
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        application_types = ApplicationType.objects.all()
-        self.assertEquals(application_types.count(), 1)
-        self.assert_are_fields_equal(test_data, application_types[0])
+        application_type = ApplicationType.objects.get(key=test_data['key'])
+        self.assert_are_fields_equal(test_data, application_type)
 
     def test_get_by_key(self):
         application_type = ApplicationTypeFactory()
