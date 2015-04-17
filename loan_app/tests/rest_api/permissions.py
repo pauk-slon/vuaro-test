@@ -1,13 +1,11 @@
 # -*- coding: utf-8 -*-
-import json
-
 from django.core.urlresolvers import reverse
 from django.contrib.auth.models import Permission
 from rest_framework import status
 from rest_framework.test import APITestCase
 
 from loan_app.factories import ApplicationFactory, UserFactory
-from loan_app.models import Application, Value
+from loan_app.models import Application
 from loan_app.tests.rest_api.base import CreateUserTestCaseMixin
 
 
