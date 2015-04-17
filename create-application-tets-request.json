@@ -1,0 +1,129 @@
+{
+  "application_type": "car-loan",
+  "values": [
+    {
+      "field": "surname",
+      "value": "Сергеев"
+    },
+    {
+      "field": "given_name",
+      "value": "Владимир"
+    },
+    {
+      "field": "patronymic",
+      "value": "Игоревич"
+    },
+    {
+        "field": "international-surname",
+        "value": "Vladimir Sergeev"
+    },
+    {
+      "field": "birthday",
+      "value": "1961-04-12"
+    },
+    {
+      "field": "birthplace",
+      "value": "Казахстан, г. Арытау"
+    },
+    {
+      "field": "citizenship",
+      "value": "Российская Федерация"
+    },
+    {
+      "field": "former-name",
+      "value": "Санжар Назарбеков"
+    },
+    {
+      "field": "gender",
+      "value": "м"
+    },
+    {
+      "field": "passport-rf",
+      "value": "00 00 000000 05.04.1993 УВД Центрального района г. Москвы"
+    },
+    {
+      "field": "inn",
+      "value": "123456789012"
+    },
+    {
+      "field": "driver-license",
+      "value": "88 01 342567"
+    },
+    {
+      "field": "international-passport",
+      "value": ""
+    },
+    {
+      "field": "army-id-card",
+      "value": "АС №3542534 выдан комиссариатом по Тосненскому р-ну Ленингр. обл."
+    },
+    {
+      "field": "snils",
+      "value": "123-321-123 12"
+    },
+    {
+      "field": "telephone-number-mobile",
+      "value": "0079132566556"
+    },
+    {
+      "field": "telephone-number-home",
+      "value": ""
+    },
+    {
+      "field": "telephone-number-work",
+      "value": "0074952324589"
+    },
+    {
+      "field": "registration-address",
+      "value": "г. Москва, ул.Садовая-Кудринская, д. 5, стр. 1, кв. 17"
+    },
+    {
+      "field": "habitation-address",
+      "value": "г. Санкт-Петербург, пр. Большевиков, д. 13 к. 7, кв. 13"
+    },
+    {
+      "field": "education",
+      "value": "высшее"
+    },
+    {
+      "field": "student",
+      "value": false
+    },
+    {
+      "field": "marital-status",
+      "value": "женат"
+    },
+    {
+      "field": "job",
+      "value": "ООО Водоканал"
+    },
+    {
+      "field": "employer-inn",
+      "value": "1234567890"
+    },
+    {
+      "field": "employer-ogrn",
+      "value": "1234567890123"
+    },
+    {
+      "field": "employer-registration-address",
+      "value": "ул. Лесная, 15"
+    },
+    {
+      "field": "employer-habituation-address",
+      "value": "ул. Лесная, 15"
+    },
+    {
+      "field": "employer-telephone-number",
+      "value": "0078128852106"
+    },
+    {
+      "field": "car-type",
+      "value": "новая иномарка"
+    },
+    {
+      "field": "down-payment",
+      "value": 200100.32
+    }
+  ]
+}
