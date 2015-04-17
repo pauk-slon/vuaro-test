@@ -301,15 +301,18 @@ application_types = [
 
 groups = {
     'loan_app_user': [
+        'add_application',
         'change_application',
         'delete_application',
     ],
     'loan_app_bank_clerk': [
+        'add_application',
         'change_application',
         'delete_application',
         'view_all_application',
     ],
     'loan_app_superuser': [
+        'add_application',
         'change_application',
         'delete_application',
         'view_all_application',
