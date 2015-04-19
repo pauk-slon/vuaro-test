@@ -50,13 +50,13 @@ class UserFactory(DjangoModelFactory):
 
     @post_generation
     def add_permissions(self, create, extracted, **kwargs):
-        change_application_permission = Permission.objects.get(
+        change_application_permission = Permission.objects.filter(
             codename='change_application'
-        )
+        )[0]
         self.user_permissions.add(change_application_permission)
-        delete_application_permission = Permission.objects.get(
+        delete_application_permission = Permission.objects.filter(
             codename='delete_application'
-        )
+        )[0]
         self.user_permissions.add(delete_application_permission)
 
     class Meta:
