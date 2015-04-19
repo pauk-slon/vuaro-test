@@ -93,7 +93,7 @@ $ curl -H "Authorization: Bearer <access_token>" http://localhost:8000/loan-app/
 1. Откройте вкладку [Raw data](http://127.0.0.1:8000/loan-app/rest/applications/#post-generic-content-form)
 2. Скопируйте содержимое файла `create-application-test-request.json` в форму и нажмите <kbd>POST</kbd>.
 
-## Управление типами анкет
+## Пример создания нового типа анкеты
 
 Пройдём весь цикл создания нового типа анкеты, используя административную панель Django. 
 
