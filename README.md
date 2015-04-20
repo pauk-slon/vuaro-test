@@ -108,10 +108,10 @@ $ curl -H "Authorization: Bearer <access_token>" http://localhost:8000/loan-app/
 1. [Заявки на кредит -> Типы полей -> Добавить тип поля](http://127.0.0.1:8000/admin/loan_app/fieldtype/add/)
 2. Заполняем поля:
 
-- Уникальный идентификатор: snils
-- Название: СНИЛС
-- Тип: CharValue
-- RegEx-шаблон: ^\d{11}$
+  - Уникальный идентификатор: snils
+  - Название: СНИЛС
+  - Тип: CharValue
+  - RegEx-шаблон: ^\d{11}$
 3. <kbd>Сохранить</kbd>
 
 ### Создание нового типа анкеты
