@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.AutoField(verbose_name='ID', serialize=False, auto_created=True, primary_key=True)),
                 ('key', models.SlugField(max_length=64, verbose_name='\u0443\u043d\u0438\u043a\u0430\u043b\u044c\u043d\u044b\u0439 \u0438\u0434\u0435\u043d\u0442\u0438\u0444\u0438\u043a\u0430\u0442\u043e\u0440')),
-                ('name', models.CharField(max_length=64, verbose_name='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
+                ('name', models.CharField(max_length=128, verbose_name='\u043d\u0430\u0437\u0432\u0430\u043d\u0438\u0435')),
                 ('required', models.BooleanField(default=False, verbose_name='\u043e\u0431\u044f\u0437\u0430\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0434\u043b\u044f \u0437\u0430\u043f\u043e\u043b\u043d\u0435\u043d\u0438\u044f')),
                 ('application_type', models.ForeignKey(to='loan_app.ApplicationType')),
             ],
